@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class FruitDaoImpl implements FruitDao {
-    private final Map<String, Integer> fruitStorage = new HashMap<>();
+    private static final Map<String, Integer> fruitStorage = new HashMap<>();
 
     @Override
     public void update(String fruitName, int quantity) {
@@ -31,5 +31,10 @@ public class FruitDaoImpl implements FruitDao {
     public Map<String, Integer> getAll() {
 
         return new HashMap<>(fruitStorage);
+    }
+
+    @Override
+    public void clear() {
+        fruitStorage.clear();
     }
 }

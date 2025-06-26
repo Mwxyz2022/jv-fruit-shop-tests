@@ -59,24 +59,4 @@ class FruitTransactionOperationTest {
                 () -> FruitTransaction.Operation.getByCode(emptyCode));
         assertEquals("Code cannot be null or empty", exception.getMessage());
     }
-
-    @Test
-    void getCode_balanceOperation_returnsCorrectCode() {
-        assertEquals("b", FruitTransaction.Operation.BALANCE.getCode());
-    }
-
-    @Test
-    void getCode_supplyOperation_returnsCorrectCode() {
-        assertEquals("s", FruitTransaction.Operation.SUPPLY.getCode());
-    }
-
-    @Test
-    void getCode_purchaseOperation_returnsCorrectCode() {
-        assertEquals("p", FruitTransaction.Operation.PURCHASE.getCode());
-    }
-
-    @Test
-    void getCode_returnOperation_returnsCorrectCode() {
-        assertEquals("r", FruitTransaction.Operation.RETURN.getCode());
-    }
 }

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import core.basesyntax.dao.FruitDao;
 import core.basesyntax.dao.FruitDaoImpl;
 import core.basesyntax.model.FruitTransaction;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -17,6 +18,11 @@ class BalanceOperationTest {
     void setUp() {
         fruitDao = new FruitDaoImpl();
         balanceOperation = new BalanceOperation(fruitDao);
+    }
+
+    @AfterEach
+    void tearDown() {
+        fruitDao.clear();
     }
 
     @Test

@@ -3,7 +3,6 @@ package core.basesyntax.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import core.basesyntax.dao.FruitDao;
 import core.basesyntax.dao.FruitDaoImpl;
 import core.basesyntax.model.FruitTransaction;
 import core.basesyntax.strategy.OperationHandler;
@@ -17,11 +16,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class ShopServiceImplTest {
-    private FruitDao fruitDao;
+    private FruitDaoImpl fruitDao;
     private ShopServiceImpl shopService;
 
     @BeforeEach
@@ -33,9 +33,14 @@ class ShopServiceImplTest {
         operationHandlers.put(FruitTransaction.Operation.SUPPLY, new SupplyOperation(fruitDao));
         operationHandlers.put(FruitTransaction.Operation.PURCHASE, new PurchaseOperation(fruitDao));
         operationHandlers.put(FruitTransaction.Operation.RETURN, new ReturnOperation(fruitDao));
-        final OperationStrategy operationStrategy = new OperationStrategyImpl(operationHandlers);
 
+        final OperationStrategy operationStrategy = new OperationStrategyImpl(operationHandlers);
         shopService = new ShopServiceImpl(operationStrategy);
+    }
+
+    @AfterEach
+    void tearDown() {
+        fruitDao.clear();
     }
 
     @Test

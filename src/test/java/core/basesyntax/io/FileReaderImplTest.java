@@ -5,20 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 class FileReaderImplTest {
+    private static final String EXISTING_FILE_NAME = "test_input.csv";
+    private static final String EMPTY_FILE_NAME = "empty_input.csv";
+
     private FileReader fileReader;
-    @TempDir
-    private Path tempDir;
 
     @BeforeEach
     void setUp() {
@@ -27,29 +28,29 @@ class FileReaderImplTest {
 
     @Test
     void read_existingFileWithContent_returnsCorrectLines() throws IOException {
-        Path testFile = tempDir.resolve("test_input.txt");
-        List<String> content = List.of("line1", "line2", "line3");
-        Files.write(testFile, content);
+        String filePath = getPathFromResources(EXISTING_FILE_NAME);
+        List<String> expectedContent = List.of("line1", "line2", "line3");
 
-        List<String> result = fileReader.read(testFile.toString());
+        List<String> result = fileReader.read(filePath);
         assertNotNull(result, "Result should not be null");
-        assertEquals(3, result.size(), "Number of lines does not match");
-        assertEquals(content, result, "File content does not match expected");
+        assertEquals(expectedContent, result, "File content does not match expected");
+
     }
 
     @Test
     void read_emptyFile_returnsEmptyList() throws IOException {
-        Path testFile = tempDir.resolve("empty_input.txt");
-        Files.write(testFile, Collections.emptyList());
+        String filePath = getPathFromResources(EMPTY_FILE_NAME);
 
-        List<String> result = fileReader.read(testFile.toString());
-        assertNotNull(result, "Result should not be null for an empty file");
-        assertTrue(result.isEmpty(), "List should be empty for an empty file");
+        List<String> result = fileReader.read(filePath);
+        assertNotNull(result, "Result should not be null");
+        assertTrue(result.isEmpty(), "Result should be empty");
+
     }
 
     @Test
     void read_nonExistentFile_throwsRuntimeException() {
-        String nonExistentFilePath = tempDir.resolve("non_existent_file.txt").toString();
+        String nonExistentFilePath = Paths.get("path", "to", "non", "existent", "file.csv")
+                .toString();
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> fileReader.read(nonExistentFilePath));
         assertTrue(exception.getMessage()
@@ -75,5 +76,17 @@ class FileReaderImplTest {
                 () -> fileReader.read(emptyFilePath));
         assertEquals("File path can't be null or empty", exception.getMessage(),
                 "Error message for empty path does not match");
+    }
+
+    private String getPathFromResources(String fileName) {
+        try {
+            URL resourceUrl = getClass().getClassLoader().getResource(fileName);
+            assertNotNull(resourceUrl, "Test file not found in resources: " + fileName
+                    + ". Make sure the file exists in `src/test/resources`.");
+            return Paths.get(resourceUrl.toURI()).toString();
+        } catch (URISyntaxException e) {
+            fail("Error getting path for resource: " + fileName, e);
+            return null;
+        }
     }
 }

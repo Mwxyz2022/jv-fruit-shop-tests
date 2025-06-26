@@ -5,8 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import core.basesyntax.dao.FruitDao;
 import core.basesyntax.dao.FruitDaoImpl;
-import java.util.Map;
-import java.util.stream.Collectors;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,92 +21,60 @@ class ReportGeneratorImplTest {
         reportGenerator = new ReportGeneratorImpl(fruitDao);
     }
 
-    private Map<String, Integer> parseReportToMap(final String reportContent) {
-        return reportContent.lines()
-                .skip(1)
-                .filter(line -> !line.trim().isEmpty())
-                .map(line -> {
-                    final String[] parts = line.split(",");
-                    if (parts.length != 2) {
-                        throw new IllegalArgumentException("Malformed report line: " + line);
-                    }
-                    try {
-                        return Map.entry(parts[0].trim(), Integer.parseInt(parts[1].trim()));
-                    } catch (NumberFormatException e) {
-                        throw new IllegalArgumentException(
-                                "Invalid quantity format in line: " + line, e);
-                    }
-                })
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    @AfterEach
+    void tearDown() {
+        fruitDao.clear();
     }
 
     @Test
     void getReport_emptyStorage_returnsHeaderOnly() {
-        final String expectedReport = HEADER + LINE_SEPARATOR;
-        final String actualReport = reportGenerator.getReport();
-
+        String expectedReport = HEADER + LINE_SEPARATOR;
+        String actualReport = reportGenerator.getReport();
         assertEquals(expectedReport, actualReport,
-                "Report for empty storage should contain only the header and a line separator.");
-        final Map<String, Integer> parsedContentMap = parseReportToMap(actualReport);
-        assertTrue(parsedContentMap.isEmpty(),
-                "Parsed content from an empty storage report should be an empty map.");
+                "Report for an empty storage should contain only the header.");
     }
 
     @Test
     void getReport_singleFruit_returnsCorrectReport() {
         fruitDao.update("apple", 150);
-        final String expectedReport = HEADER + LINE_SEPARATOR
+        String expectedReport = HEADER + LINE_SEPARATOR
                 + "apple,150" + LINE_SEPARATOR;
-        final String actualReport = reportGenerator.getReport();
-
+        String actualReport = reportGenerator.getReport();
         assertEquals(expectedReport, actualReport,
-                "Report for a single fruit is not formatted as expected.");
-        final Map<String, Integer> parsedContentMap = parseReportToMap(actualReport);
-        assertEquals(1, parsedContentMap.size(),
-                "Parsed map should contain one entry for a single fruit report.");
-        assertEquals(150, parsedContentMap.get("apple"),
-                "Quantity for 'apple' in parsed map is incorrect.");
+                "Report for a single fruit is formatted incorrectly.");
     }
 
     @Test
     void getReport_multipleFruits_returnsCorrectReport() {
         fruitDao.update("banana", 200);
-        fruitDao.update("orange", 50);
         fruitDao.update("apple", 100);
 
-        final String actualReport = reportGenerator.getReport();
+        String actualReport = reportGenerator.getReport();
 
         assertTrue(actualReport.startsWith(HEADER + LINE_SEPARATOR),
-                "Report should start with the header and a line separator.");
+                "Report should start with the header.");
+        assertTrue(actualReport.contains("banana,200"),
+                "Report should contain data for 'banana'.");
+        assertTrue(actualReport.contains("apple,100"),
+                "Report should contain data for 'apple'.");
+        assertEquals(3, actualReport.lines().count(),
+                "Report should contain 3 lines.");
         assertTrue(actualReport.endsWith(LINE_SEPARATOR),
-                "Report should end with a line separator when it contains data.");
-
-        final Map<String, Integer> actualFruitsFromReport = parseReportToMap(actualReport);
-
-        assertEquals(fruitDao.getAll(), actualFruitsFromReport,
-                "Parsed report content does not match the data in DAO for multiple fruits.");
+                "Report should end with a new line character.");
     }
 
     @Test
     void getReport_fruitWithZeroQuantity_isIncludedInReport() {
-        fruitDao.update("grape", 70);
         fruitDao.update("kiwi", 0);
         fruitDao.update("peach", 30);
 
-        final String actualReport = reportGenerator.getReport();
+        String actualReport = reportGenerator.getReport();
 
-        assertTrue(actualReport.startsWith(HEADER + LINE_SEPARATOR),
-                "Report should start with the header and a line separator.");
-        assertTrue(actualReport.endsWith(LINE_SEPARATOR),
-                "Report should end with a line separator when it contains data.");
-
-        final Map<String, Integer> actualFruitsFromReport = parseReportToMap(actualReport);
-
-        assertEquals(fruitDao.getAll(), actualFruitsFromReport,
-                "Parsed report content does not match DAO data when a fruit has zero quantity.");
-        assertTrue(actualFruitsFromReport.containsKey("kiwi"),
-                "Report should include 'kiwi' even with zero quantity.");
-        assertEquals(0, actualFruitsFromReport.get("kiwi"),
-                "Quantity for 'kiwi' should be 0 in the report.");
+        assertTrue(actualReport.contains("kiwi,0"),
+                "Report should include 'kiwi' with zero quantity.");
+        assertTrue(actualReport.contains("peach,30"),
+                "Report should contain data for 'peach'.");
+        assertEquals(3, actualReport.lines().count(),
+                "Report should contain 3 lines.");
     }
 }

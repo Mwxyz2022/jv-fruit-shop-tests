@@ -9,6 +9,9 @@ public class FileWriterImpl implements FileWriter {
 
     @Override
     public void write(String resultingReport, String filePath) {
+        if (resultingReport == null) {
+            throw new IllegalArgumentException("Report content can't be null");
+        }
 
         if (filePath == null || filePath.isEmpty()) {
             throw new IllegalArgumentException("File path can't be null or empty");

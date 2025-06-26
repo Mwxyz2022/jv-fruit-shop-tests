@@ -30,25 +30,16 @@ class DataConverterImplTest {
                 "p,banana,20",
                 "r,apple,10"
         );
-        List<FruitTransaction> transactions = dataConverter.convertToTransaction(input);
 
-        assertNotNull(transactions);
-        assertEquals(4, transactions.size());
+        List<FruitTransaction> expected = List.of(
+                new FruitTransaction("b", "banana", 100),
+                new FruitTransaction("s", "apple", 50),
+                new FruitTransaction("p", "banana", 20),
+                new FruitTransaction("r", "apple", 10)
+        );
 
-        FruitTransaction tx1 = transactions.get(0);
-        assertEquals(FruitTransaction.Operation.BALANCE, tx1.getOperation());
-        assertEquals("banana", tx1.getFruit());
-        assertEquals(100, tx1.getQuantity());
-
-        FruitTransaction tx2 = transactions.get(1);
-        assertEquals(FruitTransaction.Operation.SUPPLY, tx2.getOperation());
-        assertEquals("apple", tx2.getFruit());
-        assertEquals(50, tx2.getQuantity());
-
-        FruitTransaction tx4 = transactions.get(3);
-        assertEquals(FruitTransaction.Operation.RETURN, tx4.getOperation());
-        assertEquals("apple", tx4.getFruit());
-        assertEquals(10, tx4.getQuantity());
+        List<FruitTransaction> actual = dataConverter.convertToTransaction(input);
+        assertEquals(expected, actual);
     }
 
     @Test

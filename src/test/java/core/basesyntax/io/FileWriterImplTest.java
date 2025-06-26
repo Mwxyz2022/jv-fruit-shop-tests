@@ -13,6 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 class FileWriterImplTest {
+    private static final String VALID_REPORT_CONTENT = "fruit,quantity\napple,100\nbanana,50";
+    private static final String EMPTY_REPORT_CONTENT = "";
+    private static final String SOME_CONTENT = "some content";
+    private static final String TEST_OUTPUT_FILE_NAME = "test_output.csv";
+    private static final String EMPTY_OUTPUT_FILE_NAME = "empty_output.csv";
+    private static final String NULL_REPORT_FILE_NAME = "null_report.csv";
+    private static final String INVALID_FILE_PATH = "/non/existent/path/for/sure/file.txt";
+
     @TempDir
     private Path tempDir;
 
@@ -25,75 +33,64 @@ class FileWriterImplTest {
 
     @Test
     void write_validReportAndPath_createsFileWithContent() throws IOException {
-        String reportContent = "fruit,quantity\napple,100\nbanana,50";
-        Path outputFile = tempDir.resolve("test_output.csv");
+        Path outputFile = tempDir.resolve(TEST_OUTPUT_FILE_NAME);
         String filePath = outputFile.toString();
 
-        fileWriter.write(reportContent, filePath);
+        fileWriter.write(VALID_REPORT_CONTENT, filePath);
 
         assertTrue(Files.exists(outputFile));
-        assertEquals(reportContent, Files.readString(outputFile));
+        assertEquals(VALID_REPORT_CONTENT, Files.readString(outputFile));
     }
 
     @Test
     void write_emptyReport_createsEmptyFile() throws IOException {
-        String reportContent = "";
-        Path outputFile = tempDir.resolve("empty_output.csv");
+        Path outputFile = tempDir.resolve(EMPTY_OUTPUT_FILE_NAME);
         String filePath = outputFile.toString();
 
-        fileWriter.write(reportContent, filePath);
+        fileWriter.write(EMPTY_REPORT_CONTENT, filePath);
 
         assertTrue(Files.exists(outputFile));
         assertTrue(Files.readString(outputFile).isEmpty());
     }
 
     @Test
-    void write_nullReportContent_throwsNullPointerException() {
+    void write_nullReportContent_throwsIllegalArgumentException() {
         String nullReportContent = null;
-        Path outputFile = tempDir.resolve("null_report.txt");
+        Path outputFile = tempDir.resolve(NULL_REPORT_FILE_NAME);
         String filePath = outputFile.toString();
 
-        assertThrows(NullPointerException.class,
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> fileWriter.write(nullReportContent, filePath));
 
+        assertEquals("Report content can't be null", exception.getMessage());
         assertTrue(Files.notExists(outputFile));
     }
 
     @Test
     void write_invalidFilePath_throwsRuntimeException() {
-        String reportContent = "some content";
-        String invalidFilePath = "/non/existent/path/for/sure/file.txt";
-
-        RuntimeException exception =
-                assertThrows(RuntimeException.class,
-                        () -> fileWriter.write(reportContent, invalidFilePath));
-
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> fileWriter.write(SOME_CONTENT, INVALID_FILE_PATH));
         assertTrue(exception.getMessage()
-                .contains("Can't write data to file: " + invalidFilePath));
-        assertInstanceOf(IOException.class, exception.getCause());
+                .contains("Can't write data to file: " + INVALID_FILE_PATH));
+        assertInstanceOf(IOException.class, exception.getCause(),
+                "The cause of the exception should be IOException");
     }
 
     @Test
     void write_nullFilePath_throwsIllegalArgumentException() {
-        String reportContent = "some content";
         String nullFilePath = null;
-
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class,
-                        () -> fileWriter.write(reportContent, nullFilePath));
-
-        assertEquals("File path can't be null or empty", exception.getMessage());
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> fileWriter.write(SOME_CONTENT, nullFilePath));
+        assertEquals("File path can't be null or empty", exception.getMessage(),
+                "Error message for null path does not match");
     }
 
     @Test
     void write_emptyFilePath_throwsIllegalArgumentException() {
-        String reportContent = "some content";
         String emptyFilePath = "";
-
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class,
-                        () -> fileWriter.write(reportContent, emptyFilePath));
-
-        assertEquals("File path can't be null or empty", exception.getMessage());
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> fileWriter.write(SOME_CONTENT, emptyFilePath));
+        assertEquals("File path can't be null or empty", exception.getMessage(),
+                "Error message for empty path does not match");
     }
 }
