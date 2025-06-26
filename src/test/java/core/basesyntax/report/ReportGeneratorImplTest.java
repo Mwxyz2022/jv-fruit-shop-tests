@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 class ReportGeneratorImplTest {
     private static final String HEADER = "fruit,quantity";
-    private static final String LINE_SEPARATOR = System.lineSeparator();
+
     private FruitDao fruitDao;
     private ReportGenerator reportGenerator;
 
@@ -28,7 +28,7 @@ class ReportGeneratorImplTest {
 
     @Test
     void getReport_emptyStorage_returnsHeaderOnly() {
-        String expectedReport = HEADER + LINE_SEPARATOR;
+        String expectedReport = HEADER + System.lineSeparator();
         String actualReport = reportGenerator.getReport();
         assertEquals(expectedReport, actualReport,
                 "Report for an empty storage should contain only the header.");
@@ -37,8 +37,8 @@ class ReportGeneratorImplTest {
     @Test
     void getReport_singleFruit_returnsCorrectReport() {
         fruitDao.update("apple", 150);
-        String expectedReport = HEADER + LINE_SEPARATOR
-                + "apple,150" + LINE_SEPARATOR;
+        String expectedReport = HEADER + System.lineSeparator()
+                + "apple,150" + System.lineSeparator();
         String actualReport = reportGenerator.getReport();
         assertEquals(expectedReport, actualReport,
                 "Report for a single fruit is formatted incorrectly.");
@@ -51,7 +51,7 @@ class ReportGeneratorImplTest {
 
         String actualReport = reportGenerator.getReport();
 
-        assertTrue(actualReport.startsWith(HEADER + LINE_SEPARATOR),
+        assertTrue(actualReport.startsWith(HEADER + System.lineSeparator()),
                 "Report should start with the header.");
         assertTrue(actualReport.contains("banana,200"),
                 "Report should contain data for 'banana'.");
@@ -59,7 +59,7 @@ class ReportGeneratorImplTest {
                 "Report should contain data for 'apple'.");
         assertEquals(3, actualReport.lines().count(),
                 "Report should contain 3 lines.");
-        assertTrue(actualReport.endsWith(LINE_SEPARATOR),
+        assertTrue(actualReport.endsWith(System.lineSeparator()),
                 "Report should end with a new line character.");
     }
 
